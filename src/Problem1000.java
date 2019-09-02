@@ -15,22 +15,31 @@ https://leetcode-cn.com/problems/minimum-cost-to-merge-stones
 */
 
 public class Problem1000 {
-	int[] pre_sum;
+	int[] preSum;
 	int[] stones;
 	int K;
-	HashMap<int[], Integer> dp;
-	
+
+	int[][][] dp;
+    
     public int mergeStones(int[] stones, int K) {
+        this.dp = new int[stones.length][stones.length][K + 1];
+        for (int i = 0; i < stones.length; i++){
+            for (int j = 0; j < stones.length; j++){
+                for (int k = 0; k < K + 1; k++){
+                    this.dp[i][j][k] = Integer.MAX_VALUE;
+                }
+            }
+        }
     	if ((stones.length-1)%(K-1) != 0){
     		return -1;
     	}
     	this.stones = stones;
-    	this.pre_sum = new int[stones.length + 1];
+    	this.preSum = new int[stones.length + 1];
     	this.K = K;
+    	
     	//pre_sum is for future use in calculating cost
-    	this.pre_sum[0] = 0;
-    	for (int i = 0 ; i < this.pre_sum.length; i++) {
-    		this.pre_sum[i + 1] = this.pre_sum[i] + stones[i];
+    	for (int i = 0 ; i < this.stones.length; i++) {
+    		this.preSum[i + 1] = this.preSum[i] + stones[i];
     	}
     	int cost = recursive(0, this.stones.length - 1, 1); 
 		return cost;
@@ -41,18 +50,21 @@ public class Problem1000 {
     	if (start == end && piles == 1) {
     		return 0;
     	}
-    	if (this.dp.containsKey(new int[] {start, end, piles})) {
-    		return this.dp.get(new int[] {start, end, piles});
+    	if (this.dp[start][end][piles] != Integer.MAX_VALUE) {
+    		return this.dp[start][end][piles];
     	}
     	if (piles == 1) {
-    		int cost = recursive(start, end, this.K) + this.pre_sum[end + 1] - this.pre_sum[start];
-    		this.dp.put(new int[] {start, end, piles}, cost);
+    		int cost = recursive(start, end, this.K) + this.preSum[end + 1] - this.preSum[start];
+    		this.dp[start][end][piles] = cost;
     		return cost;
     	}else {
-    		
+    		int minCost = Integer.MAX_VALUE;
+    		for (int split = start; split < end; split = split + this.K - 1) {
+    			minCost = Math.min(minCost, recursive(start, split, 1) + recursive(split + 1, end, piles - 1));
+    		}
+    		this.dp[start][end][piles] = minCost;
+    		return minCost;
     	}
-    	return 0;
     }
-    
-
+   
 }
